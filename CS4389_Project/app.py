@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError 
 from functools import wraps  
 
+##################################################################################################################################
+
 # Load environment variables from a .env file
 load_dotenv()
 
@@ -38,6 +40,8 @@ mail = Mail(app)
 
 # Initialize SQLAlchemy extension with the app's settings
 db = SQLAlchemy(app)
+
+##################################################################################################################################
 
 # Define a Token model for storing two-factor authentication tokens
 class Token(db.Model):
@@ -74,6 +78,8 @@ class Cart(db.Model):
     clothing_item_id = db.Column(db.Integer, db.ForeignKey('clothing_item.id'), nullable=False)  # Link to a ClothingItem
     quantity = db.Column(db.Integer, nullable=False)  # Quantity of the clothing item in the cart
 
+##################################################################################################################################
+
 # Registration form class for new user sign up
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])  # Username field
@@ -92,6 +98,17 @@ class LoginForm(FlaskForm):
 class TwoFactorForm(FlaskForm):
     token = StringField('Token', validators=[DataRequired()])  # 2FA token field
     submit = SubmitField('Verify')  # Submit button
+
+# Checkout form class for entering address and payment information
+class CheckoutForm(FlaskForm):
+    address = StringField('Shipping Address', validators=[DataRequired()])
+    card_number = StringField('Card Number', validators=[DataRequired()])
+    card_expiry = StringField('Card Expiry Date (MM/YY)', validators=[DataRequired()])
+    card_cvc = StringField('Card CVC', validators=[DataRequired()])
+    submit = SubmitField('Complete Purchase')
+
+
+##################################################################################################################################
 
 # Decorator for routes that require login
 def login_required(f):
@@ -205,10 +222,143 @@ def index(user_id):
     if session.get('user_id') != user_id:
         flash('Unauthorized access!', 'danger')
         return redirect(url_for('login'))
-    return render_template('index.html', user_id=user_id)
+    items = ClothingItem.query.all()
+    return render_template('index.html', user_id=user_id, items=items)
+
+# Route for the cart page, accessible only after login
+@app.route('/cart/<int:user_id>')
+@login_required
+def cart(user_id):
+    # Ensure the user is accessing their own cart
+    if session.get('user_id') != user_id:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('login'))
+
+    # Query the database for the user's cart items
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+
+    # Now, retrieve details of each clothing item in the cart
+    cart_details = []
+    for item in cart_items:
+        clothing_item = ClothingItem.query.get(item.clothing_item_id)
+        cart_details.append({
+            'id': item.id,
+            'quantity': item.quantity,
+            'price': clothing_item.price,
+            'size': clothing_item.size,
+            'image_file': clothing_item.image_file,
+        })
+
+    # Pass the cart details to the template
+    return render_template('cart.html', cart_details=cart_details, user_id=user_id)
+
+# Route for adding item process, accessible only after login
+@app.route('/add_to_cart/<int:user_id>/<int:item_id>')
+@login_required
+def add_to_cart(user_id, item_id):
+    if session.get('user_id') != user_id:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('login'))
+
+    # Retrieve or create a cart item
+    cart_item = Cart.query.filter_by(user_id=user_id, clothing_item_id=item_id).first()
+    if cart_item:
+        cart_item.quantity += 1  # Increase quantity if item already in cart
+    else:
+        cart_item = Cart(user_id=user_id, clothing_item_id=item_id, quantity=1)  # Create new cart item
+        db.session.add(cart_item)
+
+    db.session.commit()
+    flash('Item added to cart!', 'success')
+    return redirect(url_for('index', user_id=user_id))
+
+# Route for checking out, accessible only after login
+@app.route('/checkout/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def checkout(user_id):
+    if session.get('user_id') != user_id:
+        flash('Unauthorized access!', 'danger')
+        return redirect(url_for('login'))
+
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
+
+    cart_details = []
+    total_price = 0  # Initialize total price
+
+    for item in cart_items:
+        clothing_item = ClothingItem.query.get(item.clothing_item_id)
+        item_total = item.quantity * clothing_item.price  # Calculate total price for this item
+        total_price += item_total  # Add to the total price
+
+        cart_details.append({
+            'id': item.id,
+            'quantity': item.quantity,
+            'price': clothing_item.price,
+            'size': clothing_item.size,
+            'image_file': clothing_item.image_file,
+            'total_price': item_total  # Item's total price
+        })
+
+    form = CheckoutForm()
+    if form.validate_on_submit():
+        user = User.query.get(user_id)
+        if user:
+            try:
+                # Prepare the email message
+                msg = Message("Order Confirmation", recipients=[user.email])
+                msg.body = f"Dear {user.username},\n\nYour order has been successfully placed.\n\nOrder Details:\n"
+                for item in cart_details:
+                    msg.body += f"Item: {item['size']} - Price: ${item['price']} - Quantity: {item['quantity']}\n"
+                msg.body += f"\nTotal Price: ${total_price}\n\nThank you for shopping with us!"
+
+                # Send the email
+                mail.send(msg)
+                flash('Order confirmation has been sent to your email.', 'success')
+            except Exception as e:
+                app.logger.error('Failed to send email: %s', e)
+                flash('Failed to send order confirmation email.', 'danger')
+
+        # Redirect to the success page
+        return redirect(url_for('success_page', user_id=user_id))
+
+    return render_template('checkout.html', user_id=user_id, cart_details=cart_details, total_price=total_price, form=form)
+
+# Route for success page, accessible only after login
+@app.route('/success_page/<int:user_id>')
+def success_page(user_id):
+    return render_template('success_page.html', user_id=user_id)
+
+
+##################################################################################################################################
 
 # Main execution point of the application
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create database tables if they don't already exist
+
+        # List of new clothing items
+        new_items = [
+            ClothingItem(price=20.00, size='M', quantity=10, image_file='shirt.jpeg'),
+            ClothingItem(price=25.00, size='L', quantity=5, image_file='dressShirt.jpeg'),
+            ClothingItem(price=40.00, size='M', quantity=10, image_file='jacket.jpeg'),
+            ClothingItem(price=100.00, size='L', quantity=5, image_file='nikeShoe.jpeg'),
+            ClothingItem(price=20.00, size='L', quantity=5, image_file='pants.jpeg')
+        ]
+
+        for item in new_items:
+            # Check if an item with the same attributes already exists
+            exists = ClothingItem.query.filter_by(
+                price=item.price,
+                size=item.size,
+                image_file=item.image_file
+            ).first()
+
+            # If the item does not exist, add it to the database
+            if not exists:
+                db.session.add(item)
+
+        # Commit the session if new items were added
+        db.session.commit()
+
     app.run(debug=True)
+

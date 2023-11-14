@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Clothing Store</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <style>
+            header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
+            }
+        </style>
+    </head>
+<body>
+    <header>
+        <h1>Your Cart</h1>
+        <a href="{{ url_for('checkout', user_id=user_id) }}" class="check-out-btn">Check Out</a>
+    </header>
+    <main>
+        <section class="products">
+            {% for item in cart_details %}
+            <article class="product">
+                <img src="{{ url_for('static', filename=item.image_file) }}" alt="Item Image">
+                <h2>{{ item.size }}</h2>
+                <p>Price: ${{ item.price }}</p>
+                <p>Quantity: {{ item.quantity }}</p>
+                <p>Size: {{ item.size }}</p>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

@@ -1,85 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clothing Store</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Additional CSS for header layout -->
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
 </head>
-
 <body>
     <header>
         <h1>Clothing Store</h1>
+        <a href="{{ url_for('cart', user_id=user_id) }}" class="cart-button">🛒</a>
     </header>
     <main>
         <section class="products">
+            {% for item in items %}
             <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
+                <img src="{{ url_for('static', filename=item.image_file) }}" alt="{{ item.size }}">
+                <h2>{{ item.size }}</h2>
+                <p>Price: ${{ item.price }}</p>
+                <button onclick="location.href='{{ url_for('add_to_cart', user_id=user_id, item_id=item.id) }}'">Add to Cart</button>
             </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-            <article class="product">
-                <img src="{{ url_for('static', filename='shirt.jpeg') }}" alt="Shirt">
-                <h2>Stylish Shirt</h2>
-                <p>Price: $20.00</p>
-                <button>Add to Cart</button>
-            </article>
-
+            {% endfor %}
         </section>
     </main>
     <footer>
         <p>&copy; 2023 Clothing Store</p>
     </footer>
 </body>
-
 </html>

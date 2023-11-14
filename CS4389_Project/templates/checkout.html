@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Checkout</h1>
+    </header>
+    <main>
+        <section class="products">
+            {% for item in cart_details %}
+            <article class="product">
+                <img src="{{ url_for('static', filename=item.image_file) }}" alt="Item Image">
+                <h2>{{ item.size }}</h2>
+                <p>Price: ${{ item.price }}</p>
+                <p>Quantity: {{ item.quantity }}</p>
+                <p>Size: {{ item.size }}</p>
+            </article>
+            {% endfor %}
+        </section>
+    </main>
+    <main>
+        <form action="" method="post">
+            {{ form.hidden_tag() }}
+
+            <div>
+                {{ form.address.label }}<br>
+                {{ form.address(size=32) }}
+            </div>
+            <div>
+                {{ form.card_number.label }}<br>
+                {{ form.card_number(size=20) }}
+            </div>
+            <div>
+                {{ form.card_expiry.label }}<br>
+                {{ form.card_expiry(size=5) }}
+            </div>
+            <div>
+                {{ form.card_cvc.label }}<br>
+                {{ form.card_cvc(size=4) }}
+            </div>
+            <div>
+                {{ form.submit() }}
+            </div>
+        </form>
+    </main>
+
+</body>
+
+</html>
