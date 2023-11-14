@@ -21,6 +21,11 @@ to ensure user data protection and secure transactions.
 > Use the signup feature to create a new user.
 > Log in and explore the functionalities.
 
+> IMPORTANT - 2FA login only works with authorzied users at the moment since we are implementing it with a free trail of MailGun.
+    > I sent out emails to 'exc067000@utdallas.edu', 'jinghui.guo@utdallas.edu', and 'mxi170330@utdallas.edu'
+    > emails will ask for a confirmation. Once accepted, 2FA authentication will be enabled for those emails.
+    > Email Ubadah Saleh at 'ujs200000@utdallas.edu' for help regarding this topic.
+
 *Security Implementations*
 > Bcrypt for hashing user passwords.
 > Email-based 2FA for enhanced login security.
@@ -34,5 +39,7 @@ to ensure user data protection and secure transactions.
 > Cart: Manages shopping cart items for each user.
 
 *Notes*
+> ALL EMAILS SENT WILL BE IN SPAM (authentication and order confirmation).
 > A site.db file will be created at run in the instance folder. You can delete it to earse the DB.
 > A virtual env might need to be created in order to get the program running.
+> Due to a lack of team members, payment authorization and confirmation was not set up, but just a prototype for now.
