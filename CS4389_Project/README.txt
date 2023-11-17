@@ -12,7 +12,7 @@ to ensure user data protection and secure transactions.
 > Flask-Mail for email operations.
 
 *Installation*
-> Install required packages: pip3 install -r requirements.txt.
+> Install required packages: pip3 install -r requirement.txt.
 > Set up environment variables in .env file for database, mail server, and Flask secret key.
 
 *Usage*
