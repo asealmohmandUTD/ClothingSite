@@ -4,6 +4,8 @@ Description: This project is a Flask-based web application tailored for the e-co
 It focuses on user experience and incorporates advanced security measures, including two-factor authentication,
 to ensure user data protection and secure transactions.
 
+**Must use Python 3.9**
+
 *Features*
 > User authentication and registration system.
 > Two-factor authentication (2FA) via email.
